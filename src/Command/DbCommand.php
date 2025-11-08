@@ -38,7 +38,7 @@ class DbCommand extends Command
         $io = new SymfonyStyle($input, $output);
 
         $reset = (bool)$input->getOption('reset');
-        $docs = (bool)$input->getOption('reset');
+        $docs = (bool)$input->getOption('with-docs');
 
         if ($reset) {
             foreach ($this->discussionRepository->findAll() as $discussion) {
@@ -46,7 +46,7 @@ class DbCommand extends Command
                 $this->discussionRepository->remove($discussion);
             }
             $this->discussionRepository->flush();
-            if($docs) {
+            if ($docs) {
                 $this->documentRepository->removeAll();
                 $this->documentRepository->flush();
             }

@@ -9,7 +9,15 @@ use Doctrine\DBAL\Tools\DsnParser;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerInterface;
 use Stringable;
+use Symfony\AI\Agent\Agent;
+use Symfony\AI\Agent\Toolbox\AgentProcessor;
+use Symfony\AI\Agent\Toolbox\Tool\SimilaritySearch;
+use Symfony\AI\Agent\Toolbox\Toolbox;
 use Symfony\AI\Platform\Bridge\OpenAi\PlatformFactory;
+use Symfony\AI\Platform\Exception\ExceptionInterface;
+use Symfony\AI\Platform\Message\Message;
+use Symfony\AI\Platform\Message\MessageBag;
+use Symfony\AI\Platform\Platform;
 use Symfony\AI\Store\Bridge\Postgres\Store;
 use Symfony\AI\Store\Document\Loader\InMemoryLoader;
 use Symfony\AI\Store\Document\Metadata;
@@ -19,6 +27,7 @@ use Symfony\AI\Store\Indexer;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Logger\ConsoleLogger;
 use Symfony\Component\Console\Output\ConsoleOutput;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -35,6 +44,10 @@ use Symfony\Contracts\HttpClient\HttpClientInterface;
 class RagCommand extends Command
 {
     private SymfonyStyle $io;
+    private OutputInterface $output;
+    private Store $store;
+    private Platform $platform;
+    private Vectorizer $vectorizer;
 
     public function __construct(
         #[Autowire('%env(DATABASE_URL_RAG)%')]
@@ -45,16 +58,51 @@ class RagCommand extends Command
         parent::__construct();
     }
 
+    protected function configure(): void
+    {
+        $this->setDescription('Manage server db');
+        $this->addOption('index', "index", InputOption::VALUE_NONE, 'index documents');
+        $this->addOption('query', "query", InputOption::VALUE_NONE, 'query documents');
+    }
+
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $this->io = new SymfonyStyle($input, $output);
+        $this->output = $output;
+
+        $index = (bool)$input->getOption('index');
+        $query = (bool)$input->getOption('query');
 
         // initialize the store
-        $store = Store::fromDbal(
+        $this->store = Store::fromDbal(
             connection: DriverManager::getConnection((new DsnParser())->parse($this->dsn)),
             tableName: 'my_table',
         );
 
+        // initialize the table
+        $this->store->setup();
+
+        // create embeddings for documents
+        $this->platform = PlatformFactory::create($this->apiKey, $this->http_client($this->output));
+        $this->vectorizer = new Vectorizer($this->platform, 'text-embedding-3-small', $this->logger($this->output));
+
+        if ($index) {
+            $this->indexDocuments();
+
+            return Command::SUCCESS;
+        }
+
+        if ($query) {
+            $this->query();
+
+            return Command::SUCCESS;
+        }
+
+        return Command::SUCCESS;
+    }
+
+    private function indexDocuments(): void
+    {
         // create embeddings and documents
         $documents = [];
         foreach ($this->getAllPosts() as $i => $post) {
@@ -65,16 +113,30 @@ class RagCommand extends Command
             );
         }
 
-        // initialize the table
-        $store->setup();
-
-        // create embeddings for documents
-        $platform = PlatformFactory::create($this->apiKey, $this->http_client($output));
-        $vectorizer = new Vectorizer($platform, 'text-embedding-3-small', $this->logger($output));
-        $indexer = new Indexer(new InMemoryLoader($documents), $vectorizer, $store, logger: $this->logger($output));
+        $indexer = new Indexer(
+            new InMemoryLoader($documents), $this->vectorizer, $this->store, logger: $this->logger($this->output)
+        );
         $indexer->index($documents);
+    }
 
-        return Command::SUCCESS;
+    private function query(): void
+    {
+        $similaritySearch = new SimilaritySearch($this->vectorizer, $this->store);
+        $toolbox = new Toolbox([$similaritySearch], logger: $this->logger($this->output));
+        $processor = new AgentProcessor($toolbox);
+        $agent = new Agent($this->platform, 'gpt-4o-mini', [$processor], [$processor]);
+
+        $messages = new MessageBag(
+            Message::forSystem('Please answer all user questions only using SimilaritySearch function.'),
+            Message::ofUser('Donne moi une friterie à Marloie')
+        );
+        try {
+            $result = $agent->call($messages);
+            $this->io->writeln($result->getContent());
+        } catch (ExceptionInterface $e) {
+            $this->io->error($e->getMessage());
+        }
+
     }
 
     /**
