@@ -23,7 +23,7 @@ class Chat extends AbstractController
     use ComponentWithFormTrait;
     use DefaultActionTrait;
 
-    #[LiveProp(writable: true)]
+    #[LiveProp()]
     public Discussion $discussion;
 
     public function __construct(
