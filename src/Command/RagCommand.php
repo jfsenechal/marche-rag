@@ -110,23 +110,34 @@ class RagCommand extends Command
     private function indexDocuments(): void
     {
         // create embeddings and documents
-        $documents = [];
+        $textDocuments = [];
         $this->getAllPosts();
         foreach ($this->documents as $document) {
-            $documents[] = new TextDocument(
+            $textDocuments[] = new TextDocument(
                 id: Uuid::v4(),
                 content: 'Title: '.$document->title.\PHP_EOL.'Site: '.$document->siteName.\PHP_EOL.'Description: '.$document->content,
                 metadata: new Metadata($document->toArray()),
             );
         }
 
+        // Index with Symfony AI (stores in my_table and generates embeddings)
         $indexer = new Indexer(
-            new InMemoryLoader($documents), $this->vectorizer, $this->store, logger: $this->logger($this->output)
+            new InMemoryLoader($textDocuments), $this->vectorizer, $this->store, logger: $this->logger($this->output)
         );
-        $indexer->index($documents);
-        foreach ($documents as $document) {
-            $this->documentRepository->persist($document);
+        $indexer->index($textDocuments);
+
+        // Now save to your custom document table with embeddings
+        foreach ($textDocuments as $index => $textDoc) {
+            // Get the embedding vector from the vectorized document
+            $embedding = $textDoc->getEmbedding();
+
+            // Set embeddings on your custom Document entity
+            $this->documents[$index]->setEmbeddings($embedding);
+
+            // Persist your custom entity
+            $this->documentRepository->persist($this->documents[$index]);
         }
+
         $this->documentRepository->flush();
     }
 

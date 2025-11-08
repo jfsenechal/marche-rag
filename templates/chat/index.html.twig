@@ -12,17 +12,10 @@
         </div>
         <div class="col-lg-8">
             <table class="table table-bordered mt-4">
-                <thead>
-                <tr>
-                    <th>Conversation Name</th>
-                    <th>Messages</th>
-                    <th>Actions</th>
-                </tr>
-                </thead>
                 <tbody>
                 {% for discussion in discussions %}
                     <tr>
-                        <td>
+                        <td colspan="3">
                             <a href="{{ path('chat_show', { id: discussion.id }) }}" class="btn btn-sm btn-primary">
                                 {% if discussion.name %}
                                     <strong>{{ discussion.name }}</strong>
@@ -31,7 +24,10 @@
                                 {% endif %}
                             </a>
                         </td>
-                        <td>{{ discussion.messages|length }}</td>
+                    </tr>
+                    <tr>
+                        <td>{{ discussion.createdAt|format_date('full') }}</td>
+                        <td>{{ discussion.messages|length }} messages</td>
                         <td class="d-flex justify-content-around">
                             <a href="{{ path('chat_reset', { id: discussion.id }) }}" class="btn btn-sm btn-danger">
                                 Supprimer

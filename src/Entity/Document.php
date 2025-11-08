@@ -6,10 +6,14 @@ use App\Repository\BottinRepository;
 use App\Repository\DocumentRepository;
 use App\Repository\PivotRepository;
 use Doctrine\ORM\Mapping as ORM;
+use Knp\DoctrineBehaviors\Contract\Entity\TimestampableInterface;
+use Knp\DoctrineBehaviors\Model\Timestampable\TimestampableTrait;
 
 #[ORM\Entity(repositoryClass: DocumentRepository::class)]
-class Document
+class Document implements TimestampableInterface
 {
+    use TimestampableTrait;
+
     public const VECTOR_LENGTH = 1536;
 
     #[ORM\Id]

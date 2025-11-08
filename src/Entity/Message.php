@@ -4,17 +4,18 @@ namespace App\Entity;
 
 use App\Repository\MessageRepository;
 use Doctrine\ORM\Mapping as ORM;
+use Knp\DoctrineBehaviors\Contract\Entity\TimestampableInterface;
+use Knp\DoctrineBehaviors\Model\Timestampable\TimestampableTrait;
 
 #[ORM\Entity(repositoryClass: MessageRepository::class)]
-class Message
+class Message implements TimestampableInterface
 {
+    use TimestampableTrait;
+
     #[ORM\Id]
     #[ORM\GeneratedValue(strategy: 'NONE')]
     #[ORM\Column(type: 'string', nullable: false)]
     public readonly string $id;
-
-    #[ORM\Column(type: 'datetime_immutable')]
-    public readonly \DateTimeInterface $createdAt;
 
     #[ORM\ManyToOne(targetEntity: Discussion::class, inversedBy: 'messages')]
     #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
@@ -28,7 +29,6 @@ class Message
         Discussion $discussion,
     ) {
         $this->id = uuid_create();
-        $this->createdAt = new \DateTimeImmutable();
         $this->discussion = $discussion;
     }
 }
