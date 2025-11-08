@@ -4,6 +4,7 @@ namespace App\Command;
 
 use App\Entity\Document;
 use App\Repository\MarcheBeRepository;
+use App\Repository\Theme;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\DBAL\Tools\DsnParser;
 use Psr\Log\LoggerAwareInterface;
@@ -48,6 +49,7 @@ class RagCommand extends Command
     private Store $store;
     private Platform $platform;
     private Vectorizer $vectorizer;
+    private array $documents = [];
 
     public function __construct(
         #[Autowire('%env(DATABASE_URL_RAG)%')]
@@ -98,14 +100,17 @@ class RagCommand extends Command
             return Command::SUCCESS;
         }
 
-        return Command::SUCCESS;
+        $this->io->error('Please specify an action. --index or --query');
+
+        return Command::FAILURE;
     }
 
     private function indexDocuments(): void
     {
         // create embeddings and documents
         $documents = [];
-        foreach ($this->getAllPosts() as $i => $post) {
+        $this->getAllPosts();
+        foreach ($this->documents as $post) {
             $documents[] = new TextDocument(
                 id: Uuid::v4(),
                 content: 'Title: '.$post->title.\PHP_EOL.'Site: '.$post->siteName.\PHP_EOL.'Description: '.$post->content,
@@ -139,26 +144,30 @@ class RagCommand extends Command
 
     }
 
-    /**
-     * @return array<Document>
-     */
-    private function getAllPosts(): array
+    private function getAllPosts(): void
     {
         $repository = new MarcheBeRepository();
-        $documents = [];
-
-        $siteName = 'citoyen';
-        $posts = $repository->getPosts($siteName);
-        foreach ($posts as $post) {
-            if ($this->checkSize($post->content)) {
-                $documents[] = Document::createFromPost($post, $siteName);
+        foreach (Theme::getSites() as $siteName) {
+            $posts = $repository->getPosts($siteName);
+            foreach ($posts as $post) {
+                $post->categories = $repository->getCategoriesByPost($siteName, $post->id);
+                $document = Document::createFromPost($post, $siteName);
+                if ($this->validateDocument($document->content)) {
+                    $this->documents[] = $document;
+                }
+            }
+            $posts = $repository->getPosts(2);
+            foreach ($posts as $post) {
+                $post->categories = $repository->getCategoriesByPost($siteName, $post->id);
+                $document = Document::createFromPost($post, $siteName);
+                if ($this->validateDocument($document->content)) {
+                    $this->documents[] = $document;
+                }
             }
         }
-
-        return $documents;
     }
 
-    private function checkSize(?string $content): bool
+    private function validateDocument(?string $content): bool
     {
         $content = trim($content);
         if (empty($content)) {
