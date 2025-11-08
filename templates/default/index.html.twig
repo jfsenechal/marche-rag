@@ -1,0 +1,23 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+    <div class="row g-0">
+        <div class="col-lg-4 align-content-center">
+            <div class="p-5 m-4 bg-body-tertiary rounded-3">
+                <div class="container">
+                    <h1 class="display-5 fw-bold">Chatbot with www.marche.be</h1>
+
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-8 mt-5">
+            <ul class="list-group">
+                <li class="list-group-item"><a href="{{ path('chat_new') }}">Nouvelle discussion</a></li>
+                <li class="list-group-item"><a href="{{ path('docs_index') }}">Documents indexés</a></li>
+                <li class="list-group-item"><a href="{{ path('chat_index') }}">Archive des discussions</a></li>
+                <li class="list-group-item"><a href="{{ path('messages_index') }}">Tous les messages (debug)</a></li>
+            </ul>
+        </div>
+    </div>
+
+{% endblock %}

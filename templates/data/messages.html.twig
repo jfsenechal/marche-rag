@@ -1,0 +1,29 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+    <div class="row g-0">
+        <div class="col-lg-4 align-content-center">
+            <div class="p-5 m-4 bg-body-tertiary rounded-3">
+                <div class="container">
+                    <h1 class="display-5 fw-bold">Tous les messages</h1>
+
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-8">
+            <table class="table">
+                <tr>
+                    <th>Conversation id</th>
+                    <th>Title</th>
+                </tr>
+                {% for message in messages %}
+                    <tr>
+                        <td>{{ message.discussion.id }}</td>
+                        <td>{{ message.content|u.truncate(50, '...', false) }}</td>
+                    </tr>
+                {% endfor %}
+            </table>
+        </div>
+    </div>
+
+{% endblock %}

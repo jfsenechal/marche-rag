@@ -1,0 +1,53 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+    <div class="row g-0">
+        <div class="col-lg-4 align-content-center">
+            <div class="p-5 m-4 bg-body-tertiary rounded-3">
+                <div class="container">
+                    <h1 class="display-5 fw-bold">Historique des discussions</h1>
+
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-8">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Conversation Name</th>
+                        <th>Messages</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for discussion in discussions %}
+                        <tr>
+                            <td>
+                                {% if discussion.name %}
+                                    <strong>{{ discussion.name }}</strong>
+                                {% else %}
+                                    <em class="text-muted">No title yet</em>
+                                {% endif %}
+                            </td>
+                            <td>{{ discussion.messages|length }}</td>
+                            <td class="d-flex justify-content-around">
+                                <a href="{{ path('chat_show', { id: discussion.id }) }}" class="btn btn-sm btn-primary">
+                                    Voir
+                                </a>
+                                <a href="{{ path('chat_reset', { id: discussion.id }) }}" class="btn btn-sm btn-danger">
+                                    Supprimer
+                                </a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            <div class="mt-3">
+                <a href="{{ path('chat_new') }}" class="btn btn-success">
+                    Nouvelle discussion
+                </a>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}

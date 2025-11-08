@@ -1,0 +1,35 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+    <div class="row g-0">
+        <div class="col-lg-4 align-content-center">
+            <div class="p-5 m-4 bg-body-tertiary rounded-3">
+                <div class="container">
+                    <a href="{{ path('rag_index') }}" class=" mb-4 h-100">Retour à l'accueil</a>
+                    <h1 class="display-5 fw-bold">AI Marche.be</h1>
+                    {% if discussion.name %}
+                        <p class="lead text-primary fw-semibold">
+                            {{ discussion.name }}
+                        </p>
+                    {% endif %}
+                    <p class="lead">
+                        Chatbot trained on
+                        <a href="{{ url }}" class="badge text-bg-primary link-underline-opacity-0">{{ url }}</a>,
+                        <br/>
+                        ask it anything about this website!
+                    </p>
+                    <p class="lead mt-4">
+                        <a href="{{ path('chat_reset',{'id':discussion.id}) }}"
+                           class="badge text-bg-danger link-underline-opacity-0">
+                            Effacer la discussion
+                        </a>
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-8">
+            {{ component('Chat', { discussion: discussion }) }}
+        </div>
+    </div>
+
+{% endblock %}
