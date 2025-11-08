@@ -23,17 +23,16 @@
                 {% for discussion in discussions %}
                     <tr>
                         <td>
-                            {% if discussion.name %}
-                                <strong>{{ discussion.name }}</strong>
-                            {% else %}
-                                <em class="text-muted">No title yet</em>
-                            {% endif %}
+                            <a href="{{ path('chat_show', { id: discussion.id }) }}" class="btn btn-sm btn-primary">
+                                {% if discussion.name %}
+                                    <strong>{{ discussion.name }}</strong>
+                                {% else %}
+                                    <em class="text-muted">No title yet</em>
+                                {% endif %}
+                            </a>
                         </td>
                         <td>{{ discussion.messages|length }}</td>
                         <td class="d-flex justify-content-around">
-                            <a href="{{ path('chat_show', { id: discussion.id }) }}" class="btn btn-sm btn-primary">
-                                Voir
-                            </a>
                             <a href="{{ path('chat_reset', { id: discussion.id }) }}" class="btn btn-sm btn-danger">
                                 Supprimer
                             </a>
