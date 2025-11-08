@@ -3,6 +3,7 @@
 namespace App\Command;
 
 use App\Entity\Document;
+use App\Repository\DocumentRepository;
 use App\Repository\MarcheBeRepository;
 use App\Repository\Theme;
 use Doctrine\DBAL\DriverManager;
@@ -56,6 +57,7 @@ class RagCommand extends Command
         private readonly string $dsn,
         #[Autowire('%env(OPENAI_API_KEY)%')]
         private readonly string $apiKey,
+        private readonly DocumentRepository $documentRepository,
     ) {
         parent::__construct();
     }
@@ -110,11 +112,11 @@ class RagCommand extends Command
         // create embeddings and documents
         $documents = [];
         $this->getAllPosts();
-        foreach ($this->documents as $post) {
+        foreach ($this->documents as $document) {
             $documents[] = new TextDocument(
                 id: Uuid::v4(),
-                content: 'Title: '.$post->title.\PHP_EOL.'Site: '.$post->siteName.\PHP_EOL.'Description: '.$post->content,
-                metadata: new Metadata($post->toArray()),
+                content: 'Title: '.$document->title.\PHP_EOL.'Site: '.$document->siteName.\PHP_EOL.'Description: '.$document->content,
+                metadata: new Metadata($document->toArray()),
             );
         }
 
@@ -122,6 +124,10 @@ class RagCommand extends Command
             new InMemoryLoader($documents), $this->vectorizer, $this->store, logger: $this->logger($this->output)
         );
         $indexer->index($documents);
+        foreach ($documents as $document) {
+            $this->documentRepository->persist($document);
+        }
+        $this->documentRepository->flush();
     }
 
     private function query(): void
