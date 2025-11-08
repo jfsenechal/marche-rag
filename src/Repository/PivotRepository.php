@@ -2,12 +2,13 @@
 
 namespace App\Repository;
 
+use App\Entity\Document;
 use Symfony\Component\HttpClient\HttpClient;
-use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
-use Symfony\Contracts\HttpClient\HttpClientInterface;
 use Symfony\Contracts\HttpClient\Exception\ClientExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\RedirectionExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\ServerExceptionInterface;
+use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
+use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 class PivotRepository
 {
@@ -16,6 +17,23 @@ class PivotRepository
     public function __construct(?HttpClientInterface $client = null)
     {
         $this->client = $client ?? HttpClient::create();
+    }
+
+    /**
+     * @return array<int,Document>
+     */
+    public function getEvents(): array
+    {
+        $documents = [];
+        $events = $this->loadEvents();
+        if ($events === null) {
+            return [];
+        }
+        foreach ($events->data as $event) {
+            $documents[] = Document::createFromEvent($event);
+        }
+
+        return $documents;
     }
 
     public function loadEvents(): ?\stdClass

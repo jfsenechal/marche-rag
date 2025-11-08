@@ -3,9 +3,11 @@
 namespace App\Command;
 
 use App\Entity\Document;
+use App\OpenAI\Client;
+use App\Repository\BottinRepository;
 use App\Repository\DocumentRepository;
 use App\Repository\MarcheBeRepository;
-use App\Repository\Theme;
+use App\Repository\PivotRepository;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\DBAL\Tools\DsnParser;
 use Psr\Log\LoggerAwareInterface;
@@ -57,6 +59,10 @@ class RagCommand extends Command
         private readonly string $dsn,
         #[Autowire('%env(OPENAI_API_KEY)%')]
         private readonly string $apiKey,
+        private readonly Client $client,
+        private readonly BottinRepository $bottinRepository,
+        private readonly MarcheBeRepository $marcheBeRepository,
+        private readonly PivotRepository $pivotRepository,
         private readonly DocumentRepository $documentRepository,
     ) {
         parent::__construct();
@@ -109,15 +115,21 @@ class RagCommand extends Command
 
     private function indexDocuments(): void
     {
-        // create embeddings and documents
+        $this->documents = [
+            ...$this->marcheBeRepository->getAllPosts(),
+            ...$this->bottinRepository->getBottin(),
+            ...$this->pivotRepository->getEvents(),
+        ];
+
         $textDocuments = [];
-        $this->getAllPosts();
         foreach ($this->documents as $document) {
-            $textDocuments[] = new TextDocument(
-                id: Uuid::v4(),
-                content: 'Title: '.$document->title.\PHP_EOL.'Site: '.$document->siteName.\PHP_EOL.'Description: '.$document->content,
-                metadata: new Metadata($document->toArray()),
-            );
+            if ($this->validateDocument($document) === true) {
+                $textDocuments[] = new TextDocument(
+                    id: Uuid::v4(),
+                    content: 'Title: '.$document->title.\PHP_EOL.'Site: '.$document->siteName.\PHP_EOL.'Description: '.$document->content,
+                    metadata: new Metadata($document->toArray()),
+                );
+            }
         }
 
         // Index with Symfony AI (stores in my_table and generates embeddings)
@@ -161,37 +173,17 @@ class RagCommand extends Command
 
     }
 
-    private function getAllPosts(): void
+    private function validateDocument(Document $document): bool
     {
-        $repository = new MarcheBeRepository();
-        foreach (Theme::getSites() as $siteName) {
-            $posts = $repository->getPosts($siteName);
-            foreach ($posts as $post) {
-                $post->categories = $repository->getCategoriesByPost($siteName, $post->id);
-                $document = Document::createFromPost($post, $siteName);
-                if ($this->validateDocument($document->content)) {
-                    $this->documents[] = $document;
-                }
-            }
-            $posts = $repository->getPosts(2);
-            foreach ($posts as $post) {
-                $post->categories = $repository->getCategoriesByPost($siteName, $post->id);
-                $document = Document::createFromPost($post, $siteName);
-                if ($this->validateDocument($document->content)) {
-                    $this->documents[] = $document;
-                }
-            }
-        }
-    }
-
-    private function validateDocument(?string $content): bool
-    {
+        $content = $document->content;
         $content = trim($content);
         if (empty($content)) {
             return false;
         }
         $maxChars = 30000;
         if (strlen($content) > $maxChars) {
+            $this->io->error(sprintf('Document content is too long. %d', $document->title));
+
             return false;
         }
 

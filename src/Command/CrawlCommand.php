@@ -8,7 +8,6 @@ use App\Repository\BottinRepository;
 use App\Repository\DocumentRepository;
 use App\Repository\MarcheBeRepository;
 use App\Repository\PivotRepository;
-use App\Repository\Theme;
 use Psr\Cache\InvalidArgumentException;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -29,6 +28,9 @@ class CrawlCommand extends Command
 
     public function __construct(
         private readonly Client $client,
+        private readonly BottinRepository $bottinRepository,
+        private readonly MarcheBeRepository $marcheBeRepository,
+        private readonly PivotRepository $pivotRepository,
         private readonly DocumentRepository $documentRepository,
     ) {
         parent::__construct();
@@ -40,11 +42,11 @@ class CrawlCommand extends Command
 
         $io->info('Crawling the website.');
 
-        //$this->documentRepository->removeAll();
-
-        $this->getAllPosts();
-        $this->getBottin();
-        $this->getEvents();
+        $this->documents = [
+            ...$this->marcheBeRepository->getAllPosts(),
+            ...$this->bottinRepository->getBottin(),
+            ...$this->pivotRepository->getEvents(),
+        ];
 
         $io->note(sprintf('Found %d documents.', \count($this->documents)));
 
@@ -90,43 +92,4 @@ class CrawlCommand extends Command
 
         return Command::SUCCESS;
     }
-
-    private function getAllPosts(): void
-    {
-        $repository = new MarcheBeRepository();
-        foreach (Theme::getSites() as $siteName) {
-            $posts = $repository->getPosts($siteName);
-            foreach ($posts as $post) {
-                $post->categories = $repository->getCategoriesByPost($siteName,$post->id);
-                $this->documents[] = Document::createFromPost($post, $siteName);
-            }
-            $posts = $repository->getPosts(2);
-            foreach ($posts as $post) {
-                $post->categories = $repository->getCategoriesByPost($siteName,$post->id);
-                $this->documents[] = Document::createFromPost($post, $siteName);
-            }
-        }
-    }
-
-    private function getBottin(): void
-    {
-        $repository = new BottinRepository();
-        $fiches = $repository->getFiches();
-        foreach ($fiches as $fiche) {
-            $this->documents[] = Document::createFromFiche($fiche);
-        }
-    }
-
-    private function getEvents(): void
-    {
-        $repository = new PivotRepository();
-        $events = $repository->loadEvents();
-        if ($events === null) {
-            return;
-        }
-        foreach ($events->data as $event) {
-            $this->documents[] = Document::createFromEvent($event);
-        }
-    }
-
 }

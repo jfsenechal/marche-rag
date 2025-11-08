@@ -2,6 +2,7 @@
 
 namespace App\Repository;
 
+use App\Entity\Document;
 use Symfony\Component\HttpClient\HttpClient;
 use Symfony\Contracts\HttpClient\Exception\ClientExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\RedirectionExceptionInterface;
@@ -19,6 +20,20 @@ class BottinRepository
     public function __construct(?HttpClientInterface $client = null)
     {
         $this->client = $client ?? HttpClient::create();
+    }
+
+    /**
+     * @return array<int,Document>
+     */
+    public function getBottin(): array
+    {
+        $documents = [];
+        $fiches = $this->getFiches();
+        foreach ($fiches as $fiche) {
+            $documents[] = Document::createFromFiche($fiche);
+        }
+
+        return $documents;
     }
 
     public function getFiches(): array

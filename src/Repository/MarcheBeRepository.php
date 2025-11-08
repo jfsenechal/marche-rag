@@ -2,12 +2,13 @@
 
 namespace App\Repository;
 
+use App\Entity\Document;
 use Symfony\Component\HttpClient\HttpClient;
-use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
-use Symfony\Contracts\HttpClient\HttpClientInterface;
 use Symfony\Contracts\HttpClient\Exception\ClientExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\RedirectionExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\ServerExceptionInterface;
+use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
+use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 class MarcheBeRepository
 {
@@ -16,6 +17,28 @@ class MarcheBeRepository
     public function __construct(?HttpClientInterface $client = null)
     {
         $this->client = $client ?? HttpClient::create();
+    }
+
+    /**
+     * @return array<int,Document>
+     */
+    public function getAllPosts(): array
+    {
+        $documents = [];
+        foreach (Theme::getSites() as $siteName) {
+            $posts = $this->getPosts($siteName);
+            foreach ($posts as $post) {
+                $post->categories = $this->getCategoriesByPost($siteName, $post->id);
+                $documents[] = Document::createFromPost($post, $siteName);
+            }
+            $posts = $this->getPosts(2);
+            foreach ($posts as $post) {
+                $post->categories = $this->getCategoriesByPost($siteName, $post->id);
+                $documents[] = Document::createFromPost($post, $siteName);
+            }
+        }
+
+        return $documents;
     }
 
     /**
