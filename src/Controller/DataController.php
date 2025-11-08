@@ -18,10 +18,10 @@ class DataController extends AbstractController
     ) {
     }
 
-    #[Route('/docs', name: 'docs_index', methods: ['GET'])]
+    #[Route('/documents', name: 'documents_index', methods: ['GET'])]
     public function docs(Request $request): Response
     {
-        return $this->render('data/docs.html.twig', [
+        return $this->render('data/documents.html.twig', [
             'documents' => $this->documentRepository->findAll(),
         ]);
     }
