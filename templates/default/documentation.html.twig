@@ -1,0 +1,70 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+    <div class="row g-0">
+        <div class="col-lg-4 align-content-center">
+            <div class="p-5 m-4 bg-body-tertiary rounded-3">
+                <div class="container">
+                    <h1 class="display-5 fw-bold">Documentation</h1>
+                    <p><a href="{{ path('rag_home') }}">Retour</a></p>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-8 mt-5">
+            <h2 class="text-success my-2">Les données</h2>
+            <p>Les données suivantes ont été importées</p>
+            <ul class="list-group">
+                <li class="list-group-item">Tous les articles du site www.march.be</li>
+                <li class="list-group-item">Toutes les fiches du bottin</li>
+                <li class="list-group-item">L'agenda des manifestations</li>
+            </ul>
+            <h2 class="text-success my-2">Le fonctionnement</h2>
+            <ol class="list-group list-group-numbered">
+                <li class="list-group-item">Récupération des données</li>
+                <li class="list-group-item">
+                    Conversion des données en format vectoriel en utilisant l'api d'Open AI et
+                    le modèle "text-embedding-3-small"
+                </li>
+                <li class="list-group-item">Stockage des données en local dans une base de données</li>
+                <li class="list-group-item">
+                    L'utilisateur envoie une demande, une recherche est effectuée dans les données locales.<br/>
+                    Le système reprend tous les messages de la conversation à chaque nouvelle demande.
+                </li>
+                <li class="list-group-item">La demande et les données locales trouvées sont envoyées à l'api d'Open AI
+                </li>
+                <li class="list-group-item">Une réponse est retournée à l'utilisateur.</li>
+            </ol>
+            <h2 class="text-success my-2">Le coût</h2>
+            L'utilisation de l'api d'Open AI n'est pas gratuite.<br/>
+            La conversion en format vectoriel a un coût.<br/>
+            La demande envoyée par l'utilisateur a un coût.<br/>
+            <p>
+                <strong>8 cents $ ont été utilisé</strong> pour indexer tout et faire mes tests
+            </p>
+            <p>
+                Un crédit de 5$ a été mis sur le compte d'Open AI,
+                un système d'alerte est disponible pour informer de la consommation.
+            </p>
+            <p>
+                <a href="https://openai.com/pricing" target="_blank">https://openai.com/pricing</a>
+            </p>
+
+            <h2 class="text-success my-2">Les améliorations futures</h2>
+            <ul class="list-group mb-4">
+                <li class="list-group-item">Indexer les pdfs présent sur le site de la ville</li>
+                <li class="list-group-item">
+                    Indexer les pdfs sur deliberations.be dont le site de la ville fait référence
+                </li>
+                <li class="list-group-item">Indexer les pv du Conseil</li>
+                <li class="list-group-item">Indexer les données Pivot, telles que les logements</li>
+                <li class="list-group-item">Ajouter un bouton pour une intervention humaine</li>
+                <li class="list-group-item">
+                    Utiliser le modèle "text-embedding-3-large", celui-ci a un coût de
+                    convetion plus élevé 0.13$ au lieu de 0.02$
+                </li>
+            </ul>
+
+        </div>
+    </div>
+
+{% endblock %}

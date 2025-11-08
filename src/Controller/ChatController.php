@@ -59,6 +59,6 @@ class ChatController extends AbstractController
 
         $this->addFlash('success', 'Discussion supprimée');
 
-        return $this->redirectToRoute('rag_index');
+        return $this->redirectToRoute('rag_home');
     }
 }
