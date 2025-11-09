@@ -16,7 +16,7 @@
                 {% for discussion in discussions %}
                     <tr>
                         <td colspan="3">
-                            <a href="{{ path('chat_show', { id: discussion.id }) }}" class="btn btn-sm btn-primary">
+                            <a href="{{ path('chat_show', { id: discussion.id }) }}" class="">
                                 {% if discussion.name %}
                                     <strong>{{ discussion.name }}</strong>
                                 {% else %}
