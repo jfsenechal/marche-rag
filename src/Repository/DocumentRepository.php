@@ -35,6 +35,17 @@ class DocumentRepository extends ServiceEntityRepository
             ->getResult();
     }
 
+    public function findNearestOptimize(array $embeddings): array
+    {
+        return $this->createQueryBuilder('s')
+            ->andWhere('s.content IS NOT NULL AND s.content != \'\'')
+            ->orderBy('s.embeddings <=> :embeddings', 'ASC') // lower distance = closer
+            ->setParameter('embeddings', $embeddings, 'vector')
+            ->setMaxResults(5)
+            ->getQuery()
+            ->getResult();
+    }
+
     public function findByReferenceId(string $referenceId): ?Document
     {
         return $this->createQueryBuilder('s')
