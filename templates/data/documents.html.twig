@@ -6,12 +6,13 @@
             <h1 class="display-5 fw-bold">{{ documents|length }} Documents</h1>
                     <p><a href="{{ path('rag_home') }}">Retour</a></p>
         </div>
-        <div class="col-lg-8">
+        <div class="col-lg-10">
             <table class="table table-bordered mt-4">
                 <tr>
                     <th>Title</th>
                     <th>Site</th>
                     <th>Token</th>
+                    <th>Actions</th>
                 </tr>
                 {% for document in documents %}
                     <tr>
@@ -22,7 +23,46 @@
                         </td>
                         <td>{{ document.siteName }}</td>
                         <td>{{ document.tokens }}</td>
+                        <td>
+                            <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#documentModal{{ document.id }}">
+                                View Content
+                            </button>
+                        </td>
                     </tr>
+
+                    {# Modal for this document #}
+                    <div class="modal fade" id="documentModal{{ document.id }}" tabindex="-1" aria-labelledby="documentModalLabel{{ document.id }}" aria-hidden="true">
+                        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="documentModalLabel{{ document.id }}">{{ document.title|raw }}</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <div class="mb-3">
+                                        <strong>Site:</strong> {{ document.siteName }}
+                                    </div>
+                                    <div class="mb-3">
+                                        <strong>URL:</strong> <a href="{{ document.url }}" target="_blank">{{ document.url }}</a>
+                                    </div>
+                                    <div class="mb-3">
+                                        <strong>Tokens:</strong> {{ document.tokens }}
+                                    </div>
+                                    <hr>
+                                    <div class="content">
+                                        <strong>Content:</strong>
+                                        <div class="mt-2 p-3 bg-light rounded">
+                                            {{ document.content }}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                    <a href="{{ document.url }}" target="_blank" class="btn btn-primary">Visit Page</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 {% endfor %}
             </table>
         </div>
