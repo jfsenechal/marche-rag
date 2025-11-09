@@ -41,7 +41,7 @@ class ChatController extends AbstractController
         return $this->redirectToRoute('chat_show', ['id' => $discussion->id]);
     }
 
-    #[Route('/show/{id}', name: 'chat_show', methods: ['GET','POST'])]
+    #[Route('/show/{id}', name: 'chat_show', methods: ['GET', 'POST'])]
     public function show(Discussion $discussion): Response
     {
         return $this->render('chat/new.html.twig', [
@@ -59,6 +59,6 @@ class ChatController extends AbstractController
 
         $this->addFlash('success', 'Discussion supprimée');
 
-        return $this->redirectToRoute('rag_home');
+        return $this->redirectToRoute('chat_index', [], Response::HTTP_SEE_OTHER);
     }
 }
