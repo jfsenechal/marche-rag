@@ -121,6 +121,9 @@ class RagCommand extends Command
             ...$this->pivotRepository->getEvents(),
         ];
 
+        /**
+         * @var TextDocument[] $textDocuments
+         */
         $textDocuments = [];
         foreach ($this->documents as $document) {
             if ($this->validateDocument($document) === true) {
@@ -137,7 +140,6 @@ class RagCommand extends Command
             new InMemoryLoader($textDocuments), $this->vectorizer, $this->store, logger: $this->logger($this->output)
         );
         $indexer->index($textDocuments);
-
         // Now save to your custom document table with embeddings
         foreach ($textDocuments as $index => $textDoc) {
             // Get the embedding vector from the vectorized document
@@ -182,7 +184,7 @@ class RagCommand extends Command
         }
         $maxChars = 30000;
         if (strlen($content) > $maxChars) {
-            $this->io->error(sprintf('Document content is too long. %d', $document->title));
+            $this->io->error(sprintf('Document content is too long. %s', $document->title));
 
             return false;
         }
