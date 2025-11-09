@@ -34,7 +34,7 @@ class MessageRepository extends ServiceEntityRepository
             ->getResult();
 
         usort($latest, function (Message $a, Message $b) {
-            return $a->createdAt <=> $b->getCreatedAt();
+            return $a->getCreatedAt() <=> $b->getCreatedAt();
         });
 
         return $latest;
