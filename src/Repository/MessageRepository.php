@@ -23,7 +23,7 @@ class MessageRepository extends ServiceEntityRepository
     /**
      * @return Message[]
      */
-    public function findLatest(\App\Entity\Discussion $discussion): array
+    public function findLatest(Discussion $discussion): array
     {
         $latest = $this->createQueryBuilder('m')
             ->where('m.discussion = :discussion')
