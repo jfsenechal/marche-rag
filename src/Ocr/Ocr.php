@@ -79,7 +79,7 @@ class Ocr
             $pathParts[0] = 'blogs.dir/'.Theme::getSiteIdByName($themeName);
             $path = '/'.implode('/', $pathParts);
 
-            return $this->wpDir.$path;
+            return $this->wpDir.'/wp-content/'.$path;
         }
 
         return null;
