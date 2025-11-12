@@ -36,7 +36,7 @@ class Document implements TimestampableInterface
         public readonly string $title,
         #[ORM\Column(type: 'text')]
         public readonly string $siteName,
-        #[ORM\Column(type: 'text')]
+        #[ORM\Column(type: 'text', nullable: true)]
         public readonly string $typeOf,
         #[ORM\Column(type: 'text')]
         public readonly string $content,
