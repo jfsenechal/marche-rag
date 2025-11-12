@@ -14,7 +14,8 @@ class Document implements TimestampableInterface
 {
     use TimestampableTrait;
 
-    public const VECTOR_LENGTH = 1536;
+    public const VECTOR_LENGTH_SHORT = 1536;
+    public const VECTOR_LENGTH_LONG = 1536;
 
     #[ORM\Id]
     #[ORM\GeneratedValue(strategy: 'NONE')]
@@ -25,7 +26,7 @@ class Document implements TimestampableInterface
     public int $tokens;
 
     /** @var float[] */
-    #[ORM\Column(type: 'vector', length: self::VECTOR_LENGTH)]
+    #[ORM\Column(type: 'vector', length: self::VECTOR_LENGTH_SHORT)]
     public array $embeddings;
 
     public function __construct(
@@ -35,6 +36,8 @@ class Document implements TimestampableInterface
         public readonly string $title,
         #[ORM\Column(type: 'text')]
         public readonly string $siteName,
+        #[ORM\Column(type: 'text')]
+        public readonly string $typeOf,
         #[ORM\Column(type: 'text')]
         public readonly string $content,
         #[ORM\Column(type: 'text', nullable: true)]
@@ -67,7 +70,15 @@ class Document implements TimestampableInterface
 
         $referenceId = self::createReferenceId($post->id, 'post', $siteName);
 
-        return new Document($post->link, $post->title->rendered, $siteName, $content, $referenceId);
+        return new Document($post->link, $post->title->rendered, $siteName, "post", $content, $referenceId);
+    }
+
+    public static function createFromAttachment(\stdClass $post, string $siteName): Document
+    {
+        $content = ' ';
+        $referenceId = self::createReferenceId($post->id, 'attachment', $siteName);
+
+        return new Document($post->link, $post->title->rendered, $siteName, "attachment", $content, $referenceId);
     }
 
     public static function createFromFiche(\stdClass $fiche): Document
@@ -82,7 +93,7 @@ class Document implements TimestampableInterface
         }
         $referenceId = self::createReferenceId($fiche->id, 'fiche');
 
-        return new Document($link, $fiche->societe, 'bottin', $content, $referenceId);
+        return new Document($link, $fiche->societe, 'bottin', "societe", $content, $referenceId);
     }
 
     public static function createFromEvent(\stdClass $event): Document
@@ -92,7 +103,7 @@ class Document implements TimestampableInterface
 
         $referenceId = self::createReferenceId($event->codeCgt, 'event');
 
-        return new Document($link, $event->nom, 'event', $content, $referenceId);
+        return new Document($link, $event->nom, 'event', "event", $content, $referenceId);
     }
 
     public function toArray(): array

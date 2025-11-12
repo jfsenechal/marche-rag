@@ -4,6 +4,7 @@ namespace App\OpenAI;
 
 use App\Entity\Message;
 use App\Entity\Document;
+use App\Helper\TextHelper;
 use Psr\Cache\CacheItemPoolInterface;
 use Psr\Cache\InvalidArgumentException;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
@@ -32,12 +33,7 @@ class Client
             throw new \InvalidArgumentException('Content cannot be empty for embeddings generation.');
         }
 
-        // Truncate if too long (rough estimate: 1 token ≈ 4 chars, limit ~8000 tokens)
-        $maxChars = 30000;
-        if (strlen($content) > $maxChars) {
-            $content = substr($content, 0, $maxChars);
-        }
-
+        $content = TextHelper::truncateContent($content);
         $cacheKey = md5($content);
 
         $cacheItem = $this->cache->getItem($cacheKey);

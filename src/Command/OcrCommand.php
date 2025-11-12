@@ -29,7 +29,7 @@ class OcrCommand extends Command
 
     protected function configure(): void
     {
-        $this->addArgument('filePath', InputArgument::REQUIRED, 'The file path');
+        $this->addArgument('filePath', InputArgument::OPTIONAL, 'The file path');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int

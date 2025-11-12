@@ -59,7 +59,8 @@ class CrawlCommand extends Command
                 continue;
             }
             try {
-                $embeddings = $this->client->getEmbeddings($document->content);
+                $content = "$document->title $document->typeOf $document->content";
+                $embeddings = $this->client->getEmbeddings($content);
                 $document->setEmbeddings($embeddings);
                 $validDocuments[] = $document;
                 $this->documentRepository->persist($document);

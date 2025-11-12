@@ -98,4 +98,56 @@ class MarcheBeRepository
             return [];
         }
     }
+    /**
+     * @return array<int,Document>
+     */
+    public function getAllAttachments(): array
+    {
+        $documents = [];
+        foreach (Theme::getSites() as $siteName) {
+            $posts = $this->getAttachments($siteName);
+            foreach ($posts as $post) {
+                $post->categories = $this->getCategoriesByPost($siteName, $post->id);
+                $documents[] = Document::createFromAttachment($post, $siteName);
+            }
+            $posts = $this->getAttachments(2);
+            foreach ($posts as $post) {
+                $post->categories = $this->getCategoriesByPost($siteName, $post->id);
+                $documents[] = Document::createFromAttachment($post, $siteName);
+            }
+        }
+
+        return $documents;
+    }
+    /**
+     * https://www.marche.be/sante/wp-json/wp/v2/media?per_page=100&media_type=application
+     * @param string $siteName
+     * @param int $pageNumber
+     * @return array
+     */
+    public function getAttachments(string $siteName, int $pageNumber = 1): array
+    {
+        if ($siteName === 'citoyen') {
+            $siteName = '';
+        }
+        try {
+            $response = $this->client->request(
+                'GET',
+                'https://www.marche.be/'.$siteName.'/wp-json/wp/v2/media?per_page=100&media_type=application&page='.$pageNumber
+            );
+        } catch (TransportExceptionInterface $e) {
+            return [];
+        }
+        try {
+            $content = $response->getContent();
+        } catch (ClientExceptionInterface|RedirectionExceptionInterface|ServerExceptionInterface|TransportExceptionInterface $e) {
+            return [];
+        }
+
+        try {
+            return json_decode($content, flags: JSON_THROW_ON_ERROR);
+        } catch (\JsonException $e) {
+            return [];
+        }
+    }
 }

@@ -52,7 +52,6 @@ class RagCommand extends Command
     private Store $store;
     private Platform $platform;
     private Vectorizer $vectorizer;
-    private array $documents = [];
 
     public function __construct(
         #[Autowire('%env(DATABASE_URL_RAG)%')]
@@ -115,7 +114,10 @@ class RagCommand extends Command
 
     private function indexDocuments(): void
     {
-        $this->documents = [
+        /**
+         * @var array<int,Document> $documents
+         */
+        $documents = [
             ...$this->marcheBeRepository->getAllPosts(),
             ...$this->bottinRepository->getBottin(),
             ...$this->pivotRepository->getEvents(),
@@ -125,11 +127,11 @@ class RagCommand extends Command
          * @var TextDocument[] $textDocuments
          */
         $textDocuments = [];
-        foreach ($this->documents as $document) {
+        foreach ($documents as $document) {
             if ($this->validateDocument($document) === true) {
                 $textDocuments[] = new TextDocument(
                     id: Uuid::v4(),
-                    content: 'Title: '.$document->title.\PHP_EOL.'Site: '.$document->siteName.\PHP_EOL.'Description: '.$document->content,
+                    content: 'Title: '.$document->title.\PHP_EOL.'Site: '.$document->siteName.\PHP_EOL.' Type: '.$document->typeOf.\PHP_EOL.'Description: '.$document->content,
                     metadata: new Metadata($document->toArray()),
                 );
             }
@@ -153,10 +155,10 @@ class RagCommand extends Command
             $embedding = $vectorDoc->vector->getData();
 
             // Set embeddings on your custom Document entity
-            $this->documents[$index]->setEmbeddings($embedding);
+            $documents[$index]->setEmbeddings($embedding);
 
             // Persist your custom entity
-            $this->documentRepository->persist($this->documents[$index]);
+            $this->documentRepository->persist($documents[$index]);
         }
 
         $this->documentRepository->flush();

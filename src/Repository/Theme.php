@@ -42,6 +42,22 @@ enum Theme: int
         foreach (self::cases() as $case) {
             $sites[$case->value] = $case->getSiteName();
         }
+
         return $sites;
+    }
+
+    /**
+     * @param string $name
+     * @return int
+     */
+    public static function getSiteIdByName(string $name): int
+    {
+        foreach (self::cases() as $theme) {
+            if ($theme->getSiteName() === $name) {
+                return $theme->value;
+            }
+        }
+
+        return 0;
     }
 }
