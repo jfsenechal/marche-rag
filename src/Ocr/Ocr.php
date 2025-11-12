@@ -44,12 +44,9 @@ class Ocr
             return (str_contains($file, 'img-ocr'));
         });
 
-        $i = 1;
         foreach ($files as $item) {
             $filePath = Path::makeAbsolute($item, $tmpDirectory);
             shell_exec("tesseract $filePath $tmpDirectory/text-$i --oem 1 --psm 3 -l fra logfile");
-            dd("tesseract $filePath $tmpDirectory/text-$i --oem 1 --psm 3 -l fra logfile");
-            $i++;
         }
         //merge files
         $ocrFile = $this->getPathOcr($filePath);
@@ -59,6 +56,7 @@ class Ocr
     public function getPathOcr(string $filePath): string
     {
         $tmpDirectory = $this->getTemporaryDirectory($filePath);
+
         return $tmpDirectory.DIRECTORY_SEPARATOR.$this::$ocrFilename;
     }
 

@@ -45,13 +45,16 @@ class OcrCommand extends Command
                 $this->io->writeln("Full path: ".$filePath);
 
                 if ($this->ocr->fileExists($filePath)) {
-                    try {
-                        $this->ocr->convertToImages($filePath);
-                        $this->ocr->convertToTxt($filePath);
-                        $this->io->writeln("Directory: ".$this->ocr->getTemporaryDirectory($filePath));
-                        $this->io->writeln("OcrFile: ".$this->ocr->getPathOcr($filePath));
-                    } catch (\Exception$e) {
-                        $this->io->error($e->getMessage());
+                    $ocrFilePath = $this->ocr->getPathOcr($filePath);
+                    if (!$this->ocr->fileExists($ocrFilePath)) {
+                        try {
+                            $this->io->writeln("Directory: ".$this->ocr->getTemporaryDirectory($filePath));
+                            $this->ocr->convertToImages($filePath);
+                            $this->ocr->convertToTxt($filePath);
+                            $this->io->writeln("OcrFile: ".$ocrFilePath);
+                        } catch (\Exception$e) {
+                            $this->io->error($e->getMessage());
+                        }
                     }
                 } else {
                     $this->io->error('File not found');
