@@ -54,7 +54,7 @@ class OcrCommand extends Command
                         $this->io->error($e->getMessage());
                     }
                 } else {
-                    $this->io->error('File not found');$this->io->writeln($filePath);
+                    $this->io->error('File not found');$this->io->title('Extracting pdf: '.$attachment->source_url);$this->io->writeln($filePath);
                 }
             }
         }
