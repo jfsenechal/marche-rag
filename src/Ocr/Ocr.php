@@ -32,7 +32,7 @@ class Ocr
 
     public function getTemporaryDirectory(string $filePath): string
     {
-        return dirname(str_replace($this->wpDir, $this->tmpDir, $filePath));
+        return dirname(str_replace($this->wpDir, $this->projectDir.$this->tmpDir, $filePath));
     }
 
     public function convertToTxt(string $filePath): void
@@ -50,8 +50,14 @@ class Ocr
             $i++;
         }
         //merge files
-        $ocrFile = $tmpDirectory.DIRECTORY_SEPARATOR.$this::$ocrFilename;
+        $ocrFile = $this->getPathOcr($filePath);
         shell_exec("cat $tmpDirectory/text-* > $ocrFile");
+    }
+
+    public function getPathOcr(string $filePath): string
+    {
+        $tmpDirectory = $this->getTemporaryDirectory($filePath);
+        return $tmpDirectory.DIRECTORY_SEPARATOR.$this::$ocrFilename;
     }
 
     public function getAbsolutePathFromAttachment(\stdClass $attachment): ?string

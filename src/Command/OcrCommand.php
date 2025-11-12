@@ -42,20 +42,21 @@ class OcrCommand extends Command
             foreach ($this->marcheBeRepository->getAttachments($siteName) as $attachment) {
                 $this->io->writeln('Extracting pdf: '.$attachment->guid->rendered);
                 $filePath = $this->ocr->getAbsolutePathFromAttachment($attachment);
-                if ($filePath) {
-                    $this->io->writeln($filePath);
-                } else {
-                    dd($filePath);
-                }
+                $this->io->writeln($filePath);
+
                 if ($this->ocr->fileExists($filePath)) {
-                    $this->io->info('convert ');
                     try {
                         $this->ocr->convertToImages($filePath);
                         $this->ocr->convertToTxt($filePath);
+                        $this->io->writeln("Directory: ".$this->ocr->getTemporaryDirectory($filePath));
+                        $this->io->writeln("OcrFile: ".$this->ocr->getPathOcr($filePath));
                     } catch (\Exception$e) {
                         $this->io->error($e->getMessage());
                     }
-                    $this->io->success('Finished');
+
+                    return Command::SUCCESS;
+                } else {
+                    $this->io->error('File not found');
                 }
             }
         }
