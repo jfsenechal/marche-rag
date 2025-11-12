@@ -68,6 +68,10 @@ class BottinRepository
             $parts[] = "société: {$fiche->societe}";
         }
 
+        if (!empty($fiche->localite)) {
+            $parts[] = "Adresse: {$fiche->rue}  {$fiche->numero}  {$fiche->cp}  {$fiche->localite}";
+        }
+
         // Contact person
         if (!empty($fiche->nom)) {
             $parts[] = "nom: {$fiche->nom}";
@@ -120,10 +124,10 @@ class BottinRepository
             $parts[] = "description: {$fiche->comment1}";
         }
         if (!empty($fiche->comment2)) {
-            $parts[] = "description 2: {$fiche->comment2}";
+            $parts[] = "description : {$fiche->comment2}";
         }
         if (!empty($fiche->comment3)) {
-            $parts[] = "description 3: {$fiche->comment3}";
+            $parts[] = "description : {$fiche->comment3}";
         }
 
         return implode(' ', $parts);
