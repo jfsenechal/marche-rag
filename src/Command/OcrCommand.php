@@ -40,9 +40,9 @@ class OcrCommand extends Command
 
         foreach (Theme::getSites() as $siteName) {
             foreach ($this->marcheBeRepository->getAttachments($siteName) as $attachment) {
-                $this->io->title('Extracting pdf: '.$attachment->guid->rendered);
+                //$this->io->title('Extracting pdf: '.$attachment->source_url);
                 $filePath = $this->ocr->getAbsolutePathFromAttachment($attachment);
-                $this->io->writeln($filePath);
+                //$this->io->writeln($filePath);
 
                 if ($this->ocr->fileExists($filePath)) {
                     try {
@@ -54,7 +54,7 @@ class OcrCommand extends Command
                         $this->io->error($e->getMessage());
                     }
                 } else {
-                    $this->io->error('File not found');
+                    $this->io->error('File not found');$this->io->writeln($filePath);
                 }
             }
         }
