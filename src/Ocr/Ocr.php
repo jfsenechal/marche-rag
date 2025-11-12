@@ -21,6 +21,12 @@ class Ocr
         $this->filesystem = new Filesystem();
     }
 
+    public function getTemporaryDirectory(string $filePath): string
+    {
+        return dirname(str_replace($this->wpDir, $this->projectDir.$this->tmpDir, $filePath));
+    }
+
+
     public function convertToImages(string $filePath): void
     {
         $tmpDirectory = $this->getTemporaryDirectory($filePath);
@@ -28,11 +34,6 @@ class Ocr
         $this->filesystem->mkdir($tmpDirectory);
 
         shell_exec("pdftoppm -png \"$filePath\" $tmpDirectory/img-ocr");
-    }
-
-    public function getTemporaryDirectory(string $filePath): string
-    {
-        return dirname(str_replace($this->wpDir, $this->projectDir.$this->tmpDir, $filePath));
     }
 
     public function convertToTxt(string $filePath): void
@@ -47,6 +48,7 @@ class Ocr
         foreach ($files as $item) {
             $filePath = Path::makeAbsolute($item, $tmpDirectory);
             shell_exec("tesseract $filePath $tmpDirectory/text-$i --oem 1 --psm 3 -l fra logfile");
+            dd("tesseract $filePath $tmpDirectory/text-$i --oem 1 --psm 3 -l fra logfile");
             $i++;
         }
         //merge files
