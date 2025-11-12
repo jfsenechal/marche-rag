@@ -41,16 +41,16 @@ class OcrCommand extends Command
         foreach (Theme::getSites() as $siteName) {
             foreach ($this->marcheBeRepository->getAttachments($siteName) as $attachment) {
                 $this->io->title('Extracting pdf: '.$attachment->source_url);
-                $filePath = $this->ocr->getAbsolutePathFromAttachment($attachment);
+                $filePath = $this->ocr->resolveAttachmentPath($attachment);
                 $this->io->writeln("Full path: ".$filePath);
 
                 if ($this->ocr->fileExists($filePath)) {
-                    $ocrFilePath = $this->ocr->getPathOcr($filePath);
+                    $ocrFilePath = $this->ocr->getOcrOutputPath($filePath);
                     if (!$this->ocr->fileExists($ocrFilePath)) {
                         try {
-                            $this->io->writeln("Directory: ".$this->ocr->getTemporaryDirectory($filePath));
-                            $this->ocr->convertToImages($filePath);
-                            $this->ocr->convertToTxt($filePath);
+                            $this->io->writeln("Directory: ".$this->ocr->getTempDirectoryForFile($filePath));
+                            $this->ocr->convertPdfToImages($filePath);
+                            $this->ocr->extractTextFromImages($filePath);
                             $this->io->writeln("OcrFile: ".$ocrFilePath);
                         } catch (\Exception$e) {
                             $this->io->error($e->getMessage());

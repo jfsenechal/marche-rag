@@ -9,9 +9,9 @@ use Symfony\Component\Filesystem\Path;
 
 class Ocr
 {
+    private const OCR_FILENAME = 'ocr.txt';
+
     public Filesystem $filesystem;
-    public static $ocrFilename = 'ocr.txt';
-    public string $department;
 
     public function __construct(
         #[Autowire('%kernel.project_dir%')] private readonly string $projectDir,
@@ -21,24 +21,24 @@ class Ocr
         $this->filesystem = new Filesystem();
     }
 
-    public function getTemporaryDirectory(string $filePath): string
+    public function getTempDirectoryForFile(string $filePath): string
     {
         return dirname(str_replace($this->wpDir, $this->projectDir.$this->tmpDir, $filePath));
     }
 
 
-    public function convertToImages(string $filePath): void
+    public function convertPdfToImages(string $filePath): void
     {
-        $tmpDirectory = $this->getTemporaryDirectory($filePath);
+        $tmpDirectory = $this->getTempDirectoryForFile($filePath);
         // Create the directory if it doesn't exist
         $this->filesystem->mkdir($tmpDirectory);
 
         shell_exec("pdftoppm -png \"$filePath\" $tmpDirectory/img-ocr");
     }
 
-    public function convertToTxt(string $filePath): void
+    public function extractTextFromImages(string $filePath): void
     {
-        $tmpDirectory = $this->getTemporaryDirectory($filePath);
+        $tmpDirectory = $this->getTempDirectoryForFile($filePath);
         $files = scandir($tmpDirectory);
         $files = array_filter($files, function ($file) use ($tmpDirectory) {
             return (str_contains($file, 'img-ocr'));
@@ -49,18 +49,18 @@ class Ocr
             shell_exec("tesseract $filePath $tmpDirectory/text-$i --oem 1 --psm 3 -l fra logfile");
         }
         //merge files
-        $ocrFile = $this->getPathOcr($filePath);
+        $ocrFile = $this->getOcrOutputPath($filePath);
         shell_exec("cat $tmpDirectory/text-* > $ocrFile");
     }
 
-    public function getPathOcr(string $filePath): string
+    public function getOcrOutputPath(string $filePath): string
     {
-        $tmpDirectory = $this->getTemporaryDirectory($filePath);
+        $tmpDirectory = $this->getTempDirectoryForFile($filePath);
 
-        return $tmpDirectory.DIRECTORY_SEPARATOR.$this::$ocrFilename;
+        return $tmpDirectory.DIRECTORY_SEPARATOR.self::OCR_FILENAME;
     }
 
-    public function getAbsolutePathFromAttachment(\stdClass $attachment): ?string
+    public function resolveAttachmentPath(\stdClass $attachment): ?string
     {
         $guid = $attachment->source_url;
 
@@ -94,9 +94,9 @@ class Ocr
      * @param string $filePath
      * @return void
      */
-    public function cleanTmpDirectory(string $filePath): void
+    public function cleanupTempDirectory(string $filePath): void
     {
-        $tmpDirectory = $this->getTemporaryDirectory($filePath);
+        $tmpDirectory = $this->getTempDirectoryForFile($filePath);
         $files = scandir($tmpDirectory);
         // Filter out the '.' and '..' entries
         $files = array_diff($files, ['.', '..']);
