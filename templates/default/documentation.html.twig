@@ -21,14 +21,16 @@
                 </ul>
                 <h2 class="text-success my-2">Le fonctionnement</h2>
                 <ol class="list-group list-group-numbered">
-                    <li class="list-group-item">Récupération des données</li>
+                    <li class="list-group-item">Récupération des données via mes API</li>
                     <li class="list-group-item">
-                        Conversion des données en format vectoriel en utilisant l'api d'Open AI et
+                        Conversion de ces données en format vectoriel en utilisant l'api d'Open AI et
                         le modèle "text-embedding-3-small"
                     </li>
-                    <li class="list-group-item">Stockage des données en local dans une base de données</li>
+                    <li class="list-group-item">Ces données converties sont stockées dans une base de données en local
+                    </li>
                     <li class="list-group-item">
-                        L'utilisateur envoie une demande, une recherche est effectuée dans les données locales.
+                        L'utilisateur envoie une demande, cette demande est aussi convertie en vectoriel et une
+                        recherche est effectuée dans les données locales.
                     </li>
                     <li class="list-group-item">
                         La demande et les données locales trouvées sont envoyées à l'api d'Open AI
@@ -69,6 +71,12 @@
                         conversion plus élevé 0.13$ au lieu de 0.02$
                     </li>
                 </ul>
+                <h2 class="text-success my-2">Faiblesse</h2>
+                <p>Si aucune donnée en locale n'est trouvé, la réponse ne sera pas pertinente</p>
+                <p>Ainsi par exemple si vous demandez "Quelle activité sur Marche à faire ce lundi"
+                    L'ia n'aura pas une réponse pertinente car elle n'aura pas "reçu" la liste des évènements de
+                    l'agenda.
+                </p>
                 <h2 class="text-success my-2">Données techniques</h2>
                 <ul class="list-group mb-4">
                     <li class="list-group-item">Pour le stockage des données en local : Postgresql</li>
