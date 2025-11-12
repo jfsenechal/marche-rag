@@ -6,6 +6,8 @@ use App\Repository\Theme;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Filesystem\Path;
+use Symfony\Component\Process\Exception\ProcessFailedException;
+use Symfony\Component\Process\Process;
 
 class Ocr
 {
@@ -27,15 +29,34 @@ class Ocr
     }
 
 
+    /**
+     * @param string $filePath
+     * @return void
+     */
     public function convertPdfToImages(string $filePath): void
     {
         $tmpDirectory = $this->getTempDirectoryForFile($filePath);
         // Create the directory if it doesn't exist
         $this->filesystem->mkdir($tmpDirectory);
 
-        shell_exec("pdftoppm -png \"$filePath\" $tmpDirectory/img-ocr");
+        $process = new Process([
+            'pdftoppm',
+            '-png',
+            $filePath,
+            $tmpDirectory . '/img-ocr'
+        ]);
+
+        $process->run();
+
+        if (!$process->isSuccessful()) {
+            throw new ProcessFailedException($process);
+        }
     }
 
+    /**
+     * @param string $filePath
+     * @return void
+     */
     public function extractTextFromImages(string $filePath): void
     {
         $tmpDirectory = $this->getTempDirectoryForFile($filePath);
@@ -44,13 +65,43 @@ class Ocr
             return (str_contains($file, 'img-ocr'));
         });
 
+        $i = 1;
         foreach ($files as $item) {
-            $filePath = Path::makeAbsolute($item, $tmpDirectory);
-            shell_exec("tesseract $filePath $tmpDirectory/text-$i --oem 1 --psm 3 -l fra logfile");
+            $imagePath = Path::makeAbsolute($item, $tmpDirectory);
+            $outputPath = $tmpDirectory . '/text-' . $i;
+
+            $process = new Process([
+                'tesseract',
+                $imagePath,
+                $outputPath,
+                '--oem', '1',
+                '--psm', '3',
+                '-l', 'fra',
+                'logfile'
+            ]);
+
+            $process->run();
+
+            if (!$process->isSuccessful()) {
+                throw new ProcessFailedException($process);
+            }
+
+            $i++;
         }
-        //merge files
+
+        // Merge all text files into one OCR output file
         $ocrFile = $this->getOcrOutputPath($filePath);
-        shell_exec("cat $tmpDirectory/text-* > $ocrFile");
+        $process = new Process([
+            'sh',
+            '-c',
+            "cat $tmpDirectory/text-* > $ocrFile"
+        ]);
+
+        $process->run();
+
+        if (!$process->isSuccessful()) {
+            throw new ProcessFailedException($process);
+        }
     }
 
     public function getOcrOutputPath(string $filePath): string
