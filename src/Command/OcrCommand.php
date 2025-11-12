@@ -53,8 +53,6 @@ class OcrCommand extends Command
                     } catch (\Exception$e) {
                         $this->io->error($e->getMessage());
                     }
-
-                    return Command::SUCCESS;
                 } else {
                     $this->io->error('File not found');
                 }
