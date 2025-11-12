@@ -73,6 +73,12 @@ class MarcheBeRepository
         }
     }
 
+    /**
+     * https://www.marche.be/wp-json/wp/v2/categories?post=12295
+     * @param string $siteName
+     * @param int $postId
+     * @return array
+     */
     public function getCategoriesByPost(string $siteName, int $postId): array
     {
         if ($siteName === 'citoyen') {
