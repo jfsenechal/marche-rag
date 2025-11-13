@@ -32,6 +32,9 @@ class Document implements TimestampableInterface
     #[ORM\Column(type: 'text', nullable: true)]
     public ?string $source_url = null;
 
+    #[ORM\Column(nullable: true)]
+    public int $usage_token = 0;
+
     public function __construct(
         #[ORM\Column(type: 'text')]
         public readonly string $url,
@@ -48,6 +51,7 @@ class Document implements TimestampableInterface
     ) {
         $this->id = \uuid_create();
     }
+
 
     /**
      * @param float[] $embeddings
@@ -110,6 +114,15 @@ class Document implements TimestampableInterface
         $referenceId = self::createReferenceId($event->codeCgt, 'event');
 
         return new Document($link, $event->nom, 'event', "event", $content, $referenceId);
+    }
+
+    public static function createFromTaxe(\stdClass $taxe): Document
+    {
+        $exercise = count($taxe->exercices) > 0 ? $taxe->exercices[0] : null;
+        $link = 'https://extranet.marche.be/files/taxes/'.$exercise->fileName;
+        $referenceId = self::createReferenceId($taxe->id, 'taxe');
+
+        return new Document($link, $taxe->nom, 'taxe', "taxe", ' ', $referenceId);
     }
 
     public function toArray(): array

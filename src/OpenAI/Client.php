@@ -25,7 +25,7 @@ class Client
      * @return array<float>
      * @throws InvalidArgumentException
      */
-    public function getEmbeddings(string $content): array
+    public function getEmbeddings(string $content, ?Document $document = null): array
     {
         // Validate content is not empty
         $content = trim($content);
@@ -34,7 +34,7 @@ class Client
         }
 
         $content = TextHelper::truncateContent($content);
-        $cacheKey = md5($content);
+        $cacheKey = md5($content).time();
 
         $cacheItem = $this->cache->getItem($cacheKey);
 
@@ -50,8 +50,13 @@ class Client
 
         $data = $cacheItem->get();
 
+
         if (!($data['data'][0]['embedding'] ?? false)) {
             throw new \RuntimeException('Could not get embeddings from OpenAI response.');
+        }
+
+        if ($document) {
+            $document->usage_token = (int)$data['usage']['total_tokens'];
         }
 
         return $data['data'][0]['embedding'];
@@ -81,7 +86,7 @@ class Client
                     'title' => $document->title,
                     'content' => $document->content,
                     'url' => $document->url,
-                ]) . "\n";
+                ])."\n";
         }
 
         $messages[] = [
@@ -132,7 +137,7 @@ class Client
 
         if (!($data['choices'][0]['message']['content'] ?? false)) {
             // Fallback: use first 50 chars of the message
-            return mb_substr($firstMessage, 0, 50) . (mb_strlen($firstMessage) > 50 ? '...' : '');
+            return mb_substr($firstMessage, 0, 50).(mb_strlen($firstMessage) > 50 ? '...' : '');
         }
 
         return trim($data['choices'][0]['message']['content']);

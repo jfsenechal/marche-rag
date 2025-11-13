@@ -71,7 +71,7 @@ class OcrCommand extends Command
                     $this->io->title('Extracting pdf: '.$document->source_url);
                     $this->io->writeln("Full path: ".$filePath);
                     try {
-                        $this->io->writeln("Directory: ".$this->ocr->getTempDirectoryForFile($filePath));
+                        $this->io->writeln("Directory: ".$this->ocr->getWorkingDirectory($filePath));
                         $this->ocr->convertPdfToImages($filePath);
                         $this->ocr->extractTextFromImages($filePath);
                         $this->io->writeln("OcrFile: ".$ocrFilePath);
