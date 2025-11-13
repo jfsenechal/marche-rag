@@ -18,11 +18,17 @@ class DataController extends AbstractController
     ) {
     }
 
-    #[Route('/documents', name: 'documents_index', methods: ['GET'])]
-    public function docs(Request $request): Response
+    #[Route('/documents/{type}', name: 'documents_index', methods: ['GET'])]
+    public function docs(Request $request, string $type = 'all'): Response
     {
+        if ($type === 'all') {
+            $documents = $this->documentRepository->findAll();
+        } else {
+            $documents = $this->documentRepository->findByType($type);
+        }
+
         return $this->render('data/documents.html.twig', [
-            'documents' => $this->documentRepository->findAll(),
+            'documents' => $documents,
         ]);
     }
 

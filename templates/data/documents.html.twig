@@ -4,9 +4,23 @@
     <div class="p-5 m-4 bg-body-tertiary rounded-3">
         <div class="container">
             <h1 class="display-5 fw-bold">{{ documents|length }} Documents</h1>
-                    <p><a href="{{ path('rag_home') }}">Retour</a></p>
+            <p><a href="{{ path('rag_home') }}">Retour</a></p>
         </div>
         <div class="col-lg-10">
+            <ul class="list-group list-group-horizontal my-3">
+                <li class="list-group-item">
+                    <a href="{{ path('documents_index', {'type':'post'}) }}">Articles</a>
+                </li>
+                <li class="list-group-item">
+                    <a href="{{ path('documents_index', {'type':'societe'}) }}">Bottin</a>
+                </li>
+                <li class="list-group-item">
+                    <a href="{{ path('documents_index', {'type':'event'}) }}">Event</a>
+                </li>
+                <li class="list-group-item">
+                    <a href="{{ path('documents_index', {'type':'attachment'}) }}">Pdf</a>
+                </li>
+            </ul>
             <table class="table table-bordered mt-4">
                 <tr>
                     <th>Title</th>
@@ -24,26 +38,31 @@
                         <td>{{ document.siteName }}</td>
                         <td>{{ document.tokens }}</td>
                         <td>
-                            <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#documentModal{{ document.id }}">
+                            <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal"
+                                    data-bs-target="#documentModal{{ document.id }}">
                                 View Content
                             </button>
                         </td>
                     </tr>
 
                     {# Modal for this document #}
-                    <div class="modal fade" id="documentModal{{ document.id }}" tabindex="-1" aria-labelledby="documentModalLabel{{ document.id }}" aria-hidden="true">
+                    <div class="modal fade" id="documentModal{{ document.id }}" tabindex="-1"
+                         aria-labelledby="documentModalLabel{{ document.id }}" aria-hidden="true">
                         <div class="modal-dialog modal-lg modal-dialog-scrollable">
                             <div class="modal-content">
                                 <div class="modal-header">
-                                    <h5 class="modal-title" id="documentModalLabel{{ document.id }}">{{ document.title|raw }}</h5>
-                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                    <h5 class="modal-title"
+                                        id="documentModalLabel{{ document.id }}">{{ document.title|raw }}</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                            aria-label="Close"></button>
                                 </div>
                                 <div class="modal-body">
                                     <div class="mb-3">
                                         <strong>Site:</strong> {{ document.siteName }}
                                     </div>
                                     <div class="mb-3">
-                                        <strong>URL:</strong> <a href="{{ document.url }}" target="_blank">{{ document.url }}</a>
+                                        <strong>URL:</strong> <a href="{{ document.url }}"
+                                                                 target="_blank">{{ document.url }}</a>
                                     </div>
                                     <div class="mb-3">
                                         <strong>Tokens:</strong> {{ document.tokens }}
@@ -57,7 +76,8 @@
                                     </div>
                                 </div>
                                 <div class="modal-footer">
-                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close
+                                    </button>
                                     <a href="{{ document.url }}" target="_blank" class="btn btn-primary">Visit Page</a>
                                 </div>
                             </div>

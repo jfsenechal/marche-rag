@@ -55,11 +55,25 @@ class DocumentRepository extends ServiceEntityRepository
             ->getOneOrNullResult();
     }
 
-    public function removeAll():void
+    public function removeAll(): void
     {
         foreach ($this->findAll() as $message) {
             $this->remove($message);
         }
         $this->flush();
+    }
+
+    /**
+     * @param string $type
+     * @return array<int,Document>
+     */
+    public function findByType(string $type): array
+    {
+        return $this->createQueryBuilder('s')
+            ->andWhere('s.typeOf = :type')
+            ->setParameter('type', $type)
+            ->orderBy('s.title', 'ASC')
+            ->getQuery()
+            ->getResult();
     }
 }
