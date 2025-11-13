@@ -9,7 +9,7 @@ use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Filesystem\Path;
 use Symfony\Component\Process\Exception\ProcessFailedException;
 use Symfony\Component\Process\Process;
-
+  //'/var/www/marchebe/wp-content//blogs.dir/11/files/2015/01/Infos-pratiques-et-formulaire-dinscription.doc'
 class Ocr
 {
     private const OCR_FILENAME = 'ocr.txt';
