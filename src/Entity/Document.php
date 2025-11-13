@@ -29,6 +29,9 @@ class Document implements TimestampableInterface
     #[ORM\Column(type: 'vector', length: self::VECTOR_LENGTH_SHORT)]
     public array $embeddings;
 
+    #[ORM\Column(type: 'text', nullable: true)]
+    public ?string $source_url = null;
+
     public function __construct(
         #[ORM\Column(type: 'text')]
         public readonly string $url,
@@ -39,7 +42,7 @@ class Document implements TimestampableInterface
         #[ORM\Column(type: 'text', nullable: true)]
         public readonly string $typeOf,
         #[ORM\Column(type: 'text')]
-        public readonly string $content,
+        public string $content,
         #[ORM\Column(type: 'text', nullable: true)]
         public readonly string $referenceId
     ) {
@@ -78,7 +81,10 @@ class Document implements TimestampableInterface
         $content = ' ';
         $referenceId = self::createReferenceId($post->id, 'attachment', $siteName);
 
-        return new Document($post->link, $post->title->rendered, $siteName, "attachment", $content, $referenceId);
+        $document = new Document($post->link, $post->title->rendered, $siteName, "attachment", $content, $referenceId);
+        $document->source_url = $post->source_url;
+
+        return $document;
     }
 
     public static function createFromFiche(\stdClass $fiche): Document

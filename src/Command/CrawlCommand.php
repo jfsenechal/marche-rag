@@ -3,6 +3,7 @@
 namespace App\Command;
 
 use App\Entity\Document;
+use App\Ocr\Ocr;
 use App\OpenAI\Client;
 use App\Repository\BottinRepository;
 use App\Repository\DocumentRepository;
@@ -25,6 +26,7 @@ class CrawlCommand extends Command
      * @var Document[]
      */
     private array $documents = [];
+    private SymfonyStyle $io;
 
     public function __construct(
         private readonly Client $client,
@@ -32,15 +34,16 @@ class CrawlCommand extends Command
         private readonly MarcheBeRepository $marcheBeRepository,
         private readonly PivotRepository $pivotRepository,
         private readonly DocumentRepository $documentRepository,
+        private readonly Ocr $ocr
     ) {
         parent::__construct();
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $io = new SymfonyStyle($input, $output);
+        $this->io = new SymfonyStyle($input, $output);
 
-        $io->info('Crawling the website.');
+        $this->io->info('Crawling the website.');
 
         $this->documents = [
             ...$this->marcheBeRepository->getAllPosts(),
@@ -48,49 +51,67 @@ class CrawlCommand extends Command
             ...$this->pivotRepository->getEvents(),
         ];
 
-        $io->note(sprintf('Found %d documents.', \count($this->documents)));
+        $this->io->note(sprintf('Found %d documents.', \count($this->documents)));
 
-        $io->info('Extracting embeddings.');
+        $this->io->info('Extracting embeddings.');
 
-        $validDocuments = [];
         $i = 0;
         foreach ($this->documents as $document) {
-            if ($this->documentRepository->findByReferenceId($document->referenceId)) {
-                continue;
-            }
-            try {
-                $content = "$document->title $document->typeOf $document->content";
-                $embeddings = $this->client->getEmbeddings($content);
-                $document->setEmbeddings($embeddings);
-                $validDocuments[] = $document;
-                $this->documentRepository->persist($document);
-            } catch (\InvalidArgumentException $e) {
-                $io->warning(sprintf('Skipping document "%s": %s', $document->title, $e->getMessage()));
-            } catch (InvalidArgumentException $e) {
-                $io->warning(sprintf('Skipping document "%s": %s', $document->title, $e->getMessage()));
-            }
+            $this->treatment($document);
+            $i++;
             if ($i > 30) {
                 try {
                     $this->documentRepository->flush();
                 } catch (\Exception $e) {
-                    $io->error($e->getMessage());
+                    $this->io->error($e->getMessage());
                 }
-                $io->note(sprintf('Flush %d documents.', \count($validDocuments)));
+                $this->io->note(sprintf('Flush %d documents.', $i));
                 $i = 0;
             }
-            $i++;
         }
 
-        $io->note(sprintf('Found %d valid documents.', \count($validDocuments)));
+        $this->io->info('Extracting attachments.');
+        foreach ($this->marcheBeRepository->getAllAttachments() as $document) {
+            if (strlen($document->content) > 100) {
+                $this->treatment($document);
+                continue;
+            }
+            $filePath = $this->ocr->resolveAttachmentPath($document);
+            if ($this->ocr->fileExists($filePath)) {
+                $ocrFilePath = $this->ocr->getOcrOutputPath($filePath);
+                if ($this->ocr->fileExists($ocrFilePath)) {
+                    $document->content = trim(file_get_contents($ocrFilePath));
+                    $this->documentRepository->flush();
+                    if ($document->content) {
+                        $this->treatment($document);
+                    }
+                }
+            }
+        }
 
         try {
             $this->documentRepository->flush();
         } catch (\Exception $e) {
-            $io->error($e->getMessage());
+            $this->io->error($e->getMessage());
         }
 
-        $io->success('Finished crawling this website.');
+        $this->io->success('Finished crawling this website.');
 
         return Command::SUCCESS;
+    }
+
+    private function treatment(Document $document): void
+    {
+        if ($this->documentRepository->findByReferenceId($document->referenceId)) {
+            return;
+        }
+        try {
+            $content = "$document->title $document->typeOf $document->content";
+            $embeddings = $this->client->getEmbeddings($content);
+            $document->setEmbeddings($embeddings);
+            $this->documentRepository->persist($document);
+        } catch (\InvalidArgumentException|\Exception|InvalidArgumentException $e) {
+            $this->io->warning(sprintf('Skipping document "%s": %s', $document->title, $e->getMessage()));
+        }
     }
 }

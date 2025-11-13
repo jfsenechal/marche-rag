@@ -4,7 +4,6 @@ namespace App\Command;
 
 use App\Ocr\Ocr;
 use App\Repository\MarcheBeRepository;
-use App\Repository\Theme;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
@@ -64,43 +63,39 @@ class OcrCommand extends Command
 
     private function extractText(): void
     {
-        foreach (Theme::getSites() as $siteName) {
-            foreach ($this->marcheBeRepository->getAttachments($siteName) as $attachment) {
-                $this->io->title('Extracting pdf: '.$attachment->source_url);
-                $filePath = $this->ocr->resolveAttachmentPath($attachment);
-                $this->io->writeln("Full path: ".$filePath);
-
-                if ($this->ocr->fileExists($filePath)) {
-                    $ocrFilePath = $this->ocr->getOcrOutputPath($filePath);
-                    if (!$this->ocr->fileExists($ocrFilePath)) {
-                        try {
-                            $this->io->writeln("Directory: ".$this->ocr->getTempDirectoryForFile($filePath));
-                            $this->ocr->convertPdfToImages($filePath);
-                            $this->ocr->extractTextFromImages($filePath);
-                            $this->io->writeln("OcrFile: ".$ocrFilePath);
-                        } catch (\Exception$e) {
-                            $this->io->error($e->getMessage());
-                        }
+        foreach ($this->marcheBeRepository->getAllAttachments() as $document) {
+            $filePath = $this->ocr->resolveAttachmentPath($document);
+            if ($this->ocr->fileExists($filePath)) {
+                $ocrFilePath = $this->ocr->getOcrOutputPath($filePath);
+                if (!$this->ocr->fileExists($ocrFilePath)) {
+                    $this->io->title('Extracting pdf: '.$document->source_url);
+                    $this->io->writeln("Full path: ".$filePath);
+                    try {
+                        $this->io->writeln("Directory: ".$this->ocr->getTempDirectoryForFile($filePath));
+                        $this->ocr->convertPdfToImages($filePath);
+                        $this->ocr->extractTextFromImages($filePath);
+                        $this->io->writeln("OcrFile: ".$ocrFilePath);
+                    } catch (\Exception$e) {
+                        $this->io->error($e->getMessage());
                     }
-                } else {
-                    $this->io->error('File not found');
                 }
+            } else {
+                $this->io->error('File not found');
             }
         }
+
     }
 
     private function checkOcrFileExist(): void
     {
-        foreach (Theme::getSites() as $siteName) {
-            foreach ($this->marcheBeRepository->getAttachments($siteName) as $attachment) {
-                $filePath = $this->ocr->resolveAttachmentPath($attachment);
-                if (!$this->ocr->fileExists($filePath)) {
-                    $this->io->writeln("File not found: ".$filePath);
-                } else {
-                    $ocrFilePath = $this->ocr->getOcrOutputPath($filePath);
-                    if (!$this->ocr->fileExists($ocrFilePath)) {
-                        $this->io->writeln("Ocr file not found: ".$filePath);
-                    }
+        foreach ($this->marcheBeRepository->getAllAttachments() as $document) {
+            $filePath = $this->ocr->resolveAttachmentPath($document);
+            if (!$this->ocr->fileExists($filePath)) {
+                $this->io->writeln("File not found: ".$filePath);
+            } else {
+                $ocrFilePath = $this->ocr->getOcrOutputPath($filePath);
+                if (!$this->ocr->fileExists($ocrFilePath)) {
+                    $this->io->writeln("Ocr file not found: ".$filePath);
                 }
             }
         }

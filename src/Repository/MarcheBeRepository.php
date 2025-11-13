@@ -104,6 +104,7 @@ class MarcheBeRepository
             return [];
         }
     }
+
     /**
      * @return array<int,Document>
      */
@@ -111,20 +112,19 @@ class MarcheBeRepository
     {
         $documents = [];
         foreach (Theme::getSites() as $siteName) {
-            $posts = $this->getAttachments($siteName);
-            foreach ($posts as $post) {
-                $post->categories = $this->getCategoriesByPost($siteName, $post->id);
-                $documents[] = Document::createFromAttachment($post, $siteName);
+            $attachments = $this->getAttachments($siteName);
+            foreach ($attachments as $attachment) {
+                $documents[] = Document::createFromAttachment($attachment, $siteName);
             }
-            $posts = $this->getAttachments(2);
-            foreach ($posts as $post) {
-                $post->categories = $this->getCategoriesByPost($siteName, $post->id);
-                $documents[] = Document::createFromAttachment($post, $siteName);
+            $attachments = $this->getAttachments(2);
+            foreach ($attachments as $attachment) {
+                $documents[] = Document::createFromAttachment($attachment, $siteName);
             }
         }
 
         return $documents;
     }
+
     /**
      * https://www.marche.be/sante/wp-json/wp/v2/media?per_page=100&media_type=application
      * @param string $siteName

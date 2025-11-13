@@ -2,6 +2,7 @@
 
 namespace App\Ocr;
 
+use App\Entity\Document;
 use App\Repository\Theme;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\Filesystem\Filesystem;
@@ -111,9 +112,9 @@ class Ocr
         return $tmpDirectory.DIRECTORY_SEPARATOR.self::OCR_FILENAME;
     }
 
-    public function resolveAttachmentPath(\stdClass $attachment): ?string
+    public function resolveAttachmentPath(Document $document): ?string
     {
-        $guid = $attachment->source_url;
+        $guid = $document->source_url;
 
         // Remove https://www.marche.be from the URL
         $path = str_replace('https://www.marche.be', '', $guid);
