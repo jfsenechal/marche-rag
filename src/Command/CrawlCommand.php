@@ -136,7 +136,22 @@ class CrawlCommand extends Command
     {
         $this->ocr->setBaseDataDirectory($this->taxeDir);
         foreach ($this->taxeRepository->getAllTaxes() as $document) {
-            $this->treatment($document);
+            if (strlen($document->content) > 100) {
+                $this->treatment($document);
+                continue;
+            }
+
+            $filePath = $this->taxeDir.'/'.$document->fileName;
+            if ($this->ocr->fileExists($filePath)) {
+                $ocrFilePath = $this->ocr->getOcrOutputPath($filePath);
+                if ($this->ocr->fileExists($ocrFilePath)) {
+                    $document->content = trim(file_get_contents($ocrFilePath));
+                    $this->documentRepository->flush();
+                    if ($document->content) {
+                        $this->treatment($document);
+                    }
+                }
+            }
         }
     }
 

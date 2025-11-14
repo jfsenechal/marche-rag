@@ -4,6 +4,7 @@ namespace App\Command;
 
 use App\Ocr\Ocr;
 use App\Repository\MarcheBeRepository;
+use App\Repository\TaxeRepository;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
@@ -22,7 +23,10 @@ class OcrCommand extends Command
 
     public function __construct(
         private readonly MarcheBeRepository $marcheBeRepository,
+        private readonly TaxeRepository $taxeRepository,
         private readonly Ocr $ocr,
+        #[Autowire(env: 'WP_DIRECTORY')] private readonly string $wpDir,
+        #[Autowire(env: 'TAXE_DIRECTORY')] private readonly string $taxeDir
     ) {
         parent::__construct();
     }
@@ -43,7 +47,8 @@ class OcrCommand extends Command
         $extract = (bool)$input->getOption('extract');
 
         if ($extract) {
-            $this->extractText();
+            //$this->extractTextAttachments();
+            $this->extractTextTaxes();
             $this->io->success('Finished');
 
             return Command::SUCCESS;
@@ -61,8 +66,9 @@ class OcrCommand extends Command
         return Command::FAILURE;
     }
 
-    private function extractText(): void
+    private function extractTextAttachments(): void
     {
+        $this->ocr->setBaseDataDirectory($this->wpDir);
         foreach ($this->marcheBeRepository->getAllAttachments() as $document) {
             $filePath = $this->ocr->resolvePathForWpPost($document);
             if ($this->ocr->fileExists($filePath)) {
@@ -86,6 +92,31 @@ class OcrCommand extends Command
 
     }
 
+    private function extractTextTaxes(): void
+    {
+        $this->ocr->setBaseDataDirectory($this->taxeDir);
+        foreach ($this->taxeRepository->getAllTaxes() as $document) {
+            $filePath = $this->taxeDir.'/'.$document->fileName;
+            if ($this->ocr->fileExists($filePath)) {
+                $ocrFilePath = $this->ocr->getOcrOutputPath($filePath);
+                if (!$this->ocr->fileExists($ocrFilePath)) {
+                    $this->io->title('Extracting pdf: '.$document->url);
+                    $this->io->writeln("Full path: ".$filePath);
+                    try {
+                        $this->io->writeln("Directory: ".$this->ocr->getWorkingDirectory($filePath));
+                        $this->ocr->convertPdfToImages($filePath);
+                        $this->ocr->extractTextFromImages($filePath);
+                        $this->io->writeln("OcrFile: ".$ocrFilePath);
+                    } catch (\Exception$e) {
+                        $this->io->error($e->getMessage());
+                    }
+                }
+            } else {
+                $this->io->error('File not found');
+            }
+        }
+    }
+
     private function checkOcrFileExist(): void
     {
         foreach ($this->marcheBeRepository->getAllAttachments() as $document) {
@@ -100,4 +131,5 @@ class OcrCommand extends Command
             }
         }
     }
+
 }

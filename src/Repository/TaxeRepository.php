@@ -25,8 +25,10 @@ class TaxeRepository
     public function getAllTaxes(): array
     {
         $documents = [];
-        foreach ($this->fetchAll() as $taxe) {
-            $documents[] = Document::createFromTaxe($taxe);
+        foreach ($this->fetchAll() as $nomenclature) {
+            foreach ($nomenclature->taxes as $taxe) {
+                $documents[] = Document::createFromTaxe($taxe);
+            }
         }
 
         return $documents;
