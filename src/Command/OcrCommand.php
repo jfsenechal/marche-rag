@@ -64,7 +64,7 @@ class OcrCommand extends Command
     private function extractText(): void
     {
         foreach ($this->marcheBeRepository->getAllAttachments() as $document) {
-            $filePath = $this->ocr->resolveAttachmentPath($document);
+            $filePath = $this->ocr->resolvePathForWpPost($document);
             if ($this->ocr->fileExists($filePath)) {
                 $ocrFilePath = $this->ocr->getOcrOutputPath($filePath);
                 if (!$this->ocr->fileExists($ocrFilePath)) {
@@ -89,7 +89,7 @@ class OcrCommand extends Command
     private function checkOcrFileExist(): void
     {
         foreach ($this->marcheBeRepository->getAllAttachments() as $document) {
-            $filePath = $this->ocr->resolveAttachmentPath($document);
+            $filePath = $this->ocr->resolvePathForWpPost($document);
             if (!$this->ocr->fileExists($filePath)) {
                 $this->io->writeln("File not found: ".$filePath);
             } else {

@@ -128,7 +128,7 @@ class Ocr
         return $workingDirectory.DIRECTORY_SEPARATOR.self::OCR_FILENAME;
     }
 
-    public function resolveAttachmentPath(Document $document): ?string
+    public function resolvePathForWpPost(Document $document): ?string
     {
         $guid = $document->source_url;
 

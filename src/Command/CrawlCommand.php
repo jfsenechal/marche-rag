@@ -118,7 +118,7 @@ class CrawlCommand extends Command
                 continue;
             }
 
-            $filePath = $this->ocr->resolveAttachmentPath($document);
+            $filePath = $this->ocr->resolvePathForWpPost($document);
             if ($this->ocr->fileExists($filePath)) {
                 $ocrFilePath = $this->ocr->getOcrOutputPath($filePath);
                 if ($this->ocr->fileExists($ocrFilePath)) {
